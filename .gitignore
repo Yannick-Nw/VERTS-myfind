@@ -263,3 +263,6 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/clion,linux,windows,macos,c++,c
 myfind
+.idea/**
+.vscode/**
+abc/**

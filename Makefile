@@ -3,7 +3,7 @@
 all: myfind
 
 myfind: main.cpp
-	g++ -g -Wall -o myfind main.cpp
+	g++ -g -Wall -std=c++17 -o myfind main.cpp
 
 clean:
 	rm -f myfind
