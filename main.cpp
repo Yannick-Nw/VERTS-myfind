@@ -27,7 +27,7 @@ void checkFile(std::filesystem::directory_entry entry, bool caseInsensitive, std
     }
 }
 
-void findFile(std::string searchpath, std::string filename, bool recursive, bool caseInsensitive){
+void findFile(std::string searchPath, std::string filename, bool recursive, bool caseInsensitive){
     // Child process searching one file
     if (caseInsensitive){
         filename = str_tolower(filename);
@@ -35,19 +35,19 @@ void findFile(std::string searchpath, std::string filename, bool recursive, bool
 
     if (recursive){
         // Recursive search
-        for (auto const& entry : fs::recursive_directory_iterator(searchpath)){
+        for (auto const& entry : fs::recursive_directory_iterator(searchPath)){
             checkFile(entry, caseInsensitive, filename);
         }
     } else {
         // Non recursive search
-        for (auto const& entry : fs::directory_iterator(searchpath)){
+        for (auto const& entry : fs::directory_iterator(searchPath)){
             checkFile(entry, caseInsensitive, filename);
         }    
     }
 }
 
-void findFiles(std::string searchpath, std::vector<std::string> filenames, bool recursive, bool caseInsensitive){
-    // Start search and folk a child process for each file
+void findFiles(std::string searchPath, std::vector<std::string> filenames, bool recursive, bool caseInsensitive){
+    // Start search and fork a child process for each file
     pid_t pids[filenames.size()];
     int status;
     bool isParent = true;
@@ -57,7 +57,7 @@ void findFiles(std::string searchpath, std::vector<std::string> filenames, bool 
             std::cout << "Error forking!\n";
         } else if (pids[i] == 0) {
             isParent = false;
-            findFile(searchpath, filenames[i], recursive, caseInsensitive);
+            findFile(searchPath, filenames[i], recursive, caseInsensitive);
         }
     }
     // Wait for child processes to finish
@@ -70,7 +70,7 @@ void findFiles(std::string searchpath, std::vector<std::string> filenames, bool 
 
 int main(int argc, char* argv[]) {
     std::vector<std::string> filenames;
-    std::string searchpath;
+    std::string searchPath;
     bool recursive = false;
     bool caseInsensitive = false;
 
@@ -84,28 +84,28 @@ int main(int argc, char* argv[]) {
                 caseInsensitive = true;
                 break;
             default:
-                std::cerr << "Usage: " << argv[0] << " [-R] [-i] searchpath filename1 [filename2]...[filenameN]\n";
+                std::cerr << "Usage: " << argv[0] << " [-R] [-i] searchPath filename1 [filename2]...[filenameN]\n";
                 return 1;
         }
     }
 
     if (optind < argc) {
-        searchpath = argv[optind++];
+        searchPath = argv[optind++];
         while (optind < argc) {
             filenames.push_back(argv[optind++]);
         }
     }
 
-    // Check if searchpath exists
-    if (std::filesystem::directory_entry(searchpath).exists() == false){
+    // Check if searchPath exists
+    if (std::filesystem::directory_entry(searchPath).exists() == false){
         std::cout << "Error: Directory does not exist!\n";
         return -1;
     }
 
     if (filenames.size() == 1){
-        findFile(searchpath, filenames[0], recursive, caseInsensitive);
+        findFile(searchPath, filenames[0], recursive, caseInsensitive);
     } else if (filenames.size() > 1) {
-        findFiles(searchpath, filenames, recursive, caseInsensitive);
+        findFiles(searchPath, filenames, recursive, caseInsensitive);
     } else {
         std::cout << "Error: Not enough arguments.\n";
     }
