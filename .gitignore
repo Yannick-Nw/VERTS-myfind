@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/clion,linux,windows,macos,c++,c
-# Edit at https://www.toptal.com/developers/gitignore?templates=clion,linux,windows,macos,c++,c
+# Created by https://www.toptal.com/developers/gitignore/api/c,c++,clion,linux,macos,windows,libreoffice,text
+# Edit at https://www.toptal.com/developers/gitignore?templates=c,c++,clion,linux,macos,windows,libreoffice,text
 
 ### C ###
 # Prerequisites
@@ -187,6 +187,10 @@ fabric.properties
 # https://plugins.jetbrains.com/plugin/8053-azure-toolkit-for-intellij
 .idea/**/azureSettings.xml
 
+### LibreOffice ###
+# LibreOffice locks
+.~lock.*#
+
 ### Linux ###
 *~
 
@@ -235,6 +239,17 @@ Temporary Items
 # iCloud generated files
 *.icloud
 
+### Text ###
+*.doc
+*.odt
+*.log
+*.msg
+*.pages
+*.rtf
+*.txt
+*.wpd
+*.wps
+
 ### Windows ###
 # Windows thumbnail cache files
 Thumbs.db
@@ -261,7 +276,8 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/clion,linux,windows,macos,c++,c
+# End of https://www.toptal.com/developers/gitignore/api/c,c++,clion,linux,macos,windows,libreoffice,text
+
 myfind
 .idea/**
 .vscode/**
