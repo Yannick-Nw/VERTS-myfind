@@ -8,13 +8,13 @@
 
 namespace fs = std::filesystem;
 
-std::string str_tolower(std::string s){
+std::string str_tolower(std::string text){
     // Convert str to lowercase for insensiv search
-    for (auto& x : s) {x = tolower(x);}
-    return s;
+    for (auto& letter : text) { letter = tolower(letter);}
+    return text;
 }
 
-void checkFile(std::filesystem::directory_entry entry, bool caseInsensitive, std::string filename){
+void checkFile(std::filesystem::directory_entry entry, bool caseInsensitive, std::string filename, int pipefd[2] = nullptr){
     // Check if a file is the one searched for
     bool isFile = entry.is_regular_file();
     std::string pathname = fs::path(entry).filename();
@@ -23,11 +23,16 @@ void checkFile(std::filesystem::directory_entry entry, bool caseInsensitive, std
     }
     if (isFile && (pathname == filename)){
         std::string absolutePath = fs::current_path().string() + entry.path().string().substr(1);
-        std::cout << getpid() << ": " << filename << ": " << absolutePath << '\n';
+        std::string output = std::to_string(getpid()) + ": " + filename + ": " + absolutePath + '\n';
+        if (pipefd) {
+        write(pipefd[1], output.c_str(), output.size());
+        } else {
+            std::cout << output;
+        }
     }
 }
 
-void findFile(std::string searchPath, std::string filename, bool recursive, bool caseInsensitive){
+void findFile(std::string searchPath, std::string filename, bool recursive, bool caseInsensitive, int pipefd[2] = nullptr){
     // Child process searching one file
     if (caseInsensitive){
         filename = str_tolower(filename);
@@ -36,13 +41,13 @@ void findFile(std::string searchPath, std::string filename, bool recursive, bool
     if (recursive){
         // Recursive search
         for (auto const& entry : fs::recursive_directory_iterator(searchPath)){
-            checkFile(entry, caseInsensitive, filename);
+            checkFile(entry, caseInsensitive, filename, pipefd);
         }
     } else {
         // Non recursive search
         for (auto const& entry : fs::directory_iterator(searchPath)){
-            checkFile(entry, caseInsensitive, filename);
-        }    
+            checkFile(entry, caseInsensitive, filename, pipefd);
+        }
     }
 }
 
@@ -52,12 +57,28 @@ void findFiles(std::string searchPath, std::vector<std::string> filenames, bool 
     int status;
     bool isParent = true;
     for (size_t i = 0; i < filenames.size(); ++i) {
+        int pipefd[2];
+        if (pipe(pipefd) == -1) {
+            perror("pipe");
+            exit(EXIT_FAILURE);
+        }
+
         pids[i] = fork();
         if (pids[i] < 0) {
             std::cout << "Error forking!\n";
         } else if (pids[i] == 0) {
             isParent = false;
-            findFile(searchPath, filenames[i], recursive, caseInsensitive);
+            close(pipefd[0]); // Schließen Sie das Lesende der Pipe im Child-Prozess
+            findFile(searchPath, filenames[i], recursive, caseInsensitive, pipefd);
+            close(pipefd[1]); // Schließen Sie das Schreibende der Pipe im Child-Prozess
+            exit(EXIT_SUCCESS);
+        } else {
+            close(pipefd[1]); // Schließen Sie das Schreibende der Pipe im Parent-Prozess
+            char buf;
+            while (read(pipefd[0], &buf, 1) > 0) {
+                std::cout << buf; // Lesen Sie die Daten aus der Pipe und geben Sie sie aus
+            }
+            close(pipefd[0]);
         }
     }
     // Wait for child processes to finish
